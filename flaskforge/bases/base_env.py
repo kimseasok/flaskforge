@@ -10,7 +10,7 @@ APISPEC_SWAGGER_UI_URL = "documents"
 JWT_SECRET_KEY = "YOUR_JWT_KEY"
 
 # Database Configuration
-DATABASE_URL=sqlite:///storage.db
+DATABASE_URL="sqlite:///storage.db"
 
 # Optional: Specify the SQLAlchemy echo flag to enable SQL logging
 SQLALCHEMY_ECHO = True

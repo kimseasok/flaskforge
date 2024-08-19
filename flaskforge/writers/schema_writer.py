@@ -3,7 +3,7 @@ import ast
 import astor
 from inflect import engine
 from stringcase import pascalcase, snakecase
-from sqlalchemy.orm import class_mapper
+from sqlalchemy.orm import class_mapper, ColumnProperty
 from flaskforge.utils.commons import join_path
 from flaskforge.modifiers import FieldModifier, ImportModifier
 from .base_writer import AbstractWriter
@@ -59,7 +59,7 @@ class SchemaWriter(AbstractWriter):
         self._validate = {"str": "validate.Length"}
 
         self.set_writable()
-        
+
         self.set_writable_path("schemas")
 
     def write_nested(self):
@@ -123,6 +123,10 @@ class SchemaWriter(AbstractWriter):
         mapper = class_mapper(ModelClass)
 
         for attr in mapper.attrs:
+            # skip none sqlalchemy fields
+            if not isinstance(attr, ColumnProperty):
+                continue
+
             (column,) = attr.columns
             express = "{required}{attribute}{validate}".format(
                 required=(

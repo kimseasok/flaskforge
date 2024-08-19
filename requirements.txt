@@ -26,3 +26,5 @@ Werkzeug==3.0.3
 flask-jwt-extended==4.6.0
 alembic==1.13.2
 python-dotenv==0.19.2
+bcrypt==4.2.0
+inflect==7.3.1
