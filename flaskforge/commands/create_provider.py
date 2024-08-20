@@ -300,14 +300,16 @@ Please run {self.io.color(self.io.CYAN, "flaskforge initapp")} first"""
             not os.path.isfile(join_path(self.project_path, "alembic.ini"))
             and self.io.confirm("Would like to init migration") == "yes"
         ):
-            exec_command("alembic init migration")
+            exec_command("docker exec -it api alembic init migration")
 
             writer = WriterFactory("migration", args)
             writer.write_source()
 
             # Run migration once
-            exec_command(f"alembic revision --autogenerate --message '{msg}'")
-            exec_command("alembic upgrade head")
+            exec_command(
+                f"docker exec -it api alembic revision --autogenerate --message '{msg}'"
+            )
+            exec_command("docker exec -it api alembic upgrade head")
             confirm_init = True
 
         if (
@@ -315,5 +317,7 @@ Please run {self.io.color(self.io.CYAN, "flaskforge initapp")} first"""
             and self.io.confirm("Would you like to execute alembic migrate?") == "yes"
         ):
 
-            exec_command(f"alembic revision --autogenerate --message '{msg}'")
-            exec_command("alembic upgrade head")
+            exec_command(
+                f"docker exec -it api alembic revision --autogenerate --message '{msg}'"
+            )
+            exec_command("docker exec -it api alembic upgrade head")

@@ -14,24 +14,28 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
+# Create a non-root user and set permissions
+RUN useradd -m -s /bin/bash appuser
+
 WORKDIR /app
 
 ADD . /app
 
-RUN pip install --upgrade pip\
+RUN pip install --upgrade pip \
     && pip install flaskforge
 
-FROM builder AS production
+# Switch to the non-root user
+USER appuser
 
+FROM builder AS production
 
 FROM production AS development
 
 ENV FLASK_ENV=development
 
-RUN pip install --no-cache-dir debugpy pytest\
+RUN pip install --no-cache-dir debugpy pytest \
     Faker marshmallow-factory pytest-custom-report
 
 EXPOSE 5000
-
 
 CMD ["python", "runner.py"]

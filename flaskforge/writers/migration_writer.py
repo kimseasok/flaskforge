@@ -3,7 +3,7 @@ import ast
 import astor
 from os import getenv, path
 
-from yaml import load, dump
+from yaml import load, Loader
 from dotenv import load_dotenv
 from flaskforge.utils.commons import join_path
 from flaskforge.modifiers import ImportModifier, AssignmentModifier
@@ -57,7 +57,7 @@ class MigrationWriter(AbstractWriter):
             docker_compose = self.read(
                 join_path(self.package_root, "bases", "docker-compose.yml")
             )
-            environments = load(docker_compose)["services"]["db"]["environment"]
+            environments = load(docker_compose, Loader=Loader)["services"]["db"]["environment"]
 
             database_url = f"""postgresql://{environments["POSTGRES_USER"]}:{
                 environments["POSTGRES_PASSWORD"]}@db/{environments["POSTGRES_DB"]}"""

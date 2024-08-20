@@ -12,12 +12,12 @@ app = Flask(__name__)
 app.config.update(
     {
         "APISPEC_SPEC": APISpec(
-            title=environ.get("TITLE"),
-            version=environ.get("API_VERSION"),
+            title=environ.get("SWAGGER_TITLE", "FlaskForge"),
+            version=environ.get("API_VERSION", "1.0.0"),
             openapi_version="2.0",
             plugins=[MarshmallowPlugin()],
         ),
-        "APISPEC_SWAGGER_UI_URL": f"""/{environ.get("APISPEC_SWAGGER_UI_URL")}/""",
+        "APISPEC_SWAGGER_UI_URL": f"""/{environ.get("SWAGGER_UI_URL", "documents")}/""",
         "APISPEC_SWAGGER_URL": "/json/",
     }
 )
