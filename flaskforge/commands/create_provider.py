@@ -295,21 +295,28 @@ Please run {self.io.color(self.io.CYAN, "flaskforge initapp")} first"""
         # Format the timestamp as YYYY_MM_DD_HH_MM_SS
         timestamp = now.strftime("%Y_%m_%d_%H_%M_%S")
         msg = snakecase(f"{timestamp} create {args.model} table")
+        use_docker = os.path.isfile(join_path(self.project_path, "Dockerfile"))
 
         if (
             not os.path.isfile(join_path(self.project_path, "alembic.ini"))
             and self.io.confirm("Would like to init migration") == "yes"
         ):
-            exec_command("docker exec -it api alembic init migration")
+            exec_command(
+                f"""{"docker exec -it api " if use_docker else ""}alembic init migration"""
+            )
 
             writer = WriterFactory("migration", args)
+            writer.args.use_docker = use_docker
             writer.write_source()
 
             # Run migration once
             exec_command(
-                f"docker exec -it api alembic revision --autogenerate --message '{msg}'"
+                f"""{"docker exec -it api " if use_docker else ""
+                }alembic revision --autogenerate --message '{msg}'"""
             )
-            exec_command("docker exec -it api alembic upgrade head")
+            exec_command(
+                f"""{"docker exec -it api " if use_docker else ""}alembic upgrade head"""
+            )
             confirm_init = True
 
         if (
@@ -318,6 +325,9 @@ Please run {self.io.color(self.io.CYAN, "flaskforge initapp")} first"""
         ):
 
             exec_command(
-                f"docker exec -it api alembic revision --autogenerate --message '{msg}'"
+                f"""{"docker exec -it api " if use_docker else ""
+                }alembic revision --autogenerate --message '{msg}'"""
             )
-            exec_command("docker exec -it api alembic upgrade head")
+            exec_command(
+                f"""{"docker exec -it api " if use_docker else ""}alembic upgrade head"""
+            )

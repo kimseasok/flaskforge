@@ -1,10 +1,13 @@
 import os
 import sys
+import ast
 from abc import ABC, abstractmethod
 
+import astor
 from black import FileMode, format_str
 from stringcase import pascalcase, snakecase
 
+from flaskforge.modifiers import AssignmentModifier
 from flaskforge.utils.commons import dirname, join_path
 
 
@@ -87,17 +90,41 @@ class AbstractWriter(ABC):
         """
         if not os.path.exists(self.writable_path):
             os.makedirs(self.writable_path)
+
             self.write(join_path(self.writable_path, "__init__.py"))
 
             # Write base file if it exists
             base_path = join_path(self.package_root, "bases", f"base_{self.type}.py")
+
             if os.path.isfile(base_path):
                 with open(base_path, "r") as reader:
                     base_model = reader.read()
+
+                if (
+                    hasattr(self.args, "use_docker")
+                    and not self.args.use_docker
+                    and self.type == "model"
+                ):
+                    engine_source = """create_engine(
+                    environ.get("DATABASE_URL", "sqlite:///storage.db"))"""
+
+                    session_source = """scoped_session(
+                    sessionmaker(bind=engine,query_cls=BaseQuery))"""
+                    tree = ast.parse(base_model)
+                    tree = AssignmentModifier("engine", engine_source.strip()).visit(
+                        tree
+                    )
+                    tree = AssignmentModifier("session", session_source.strip()).visit(
+                        tree
+                    )
+                    base_model = astor.to_source(tree)
+
                 self.write(
                     join_path(self.writable_path, f"base_{self.type}.py"),
                     self.format(base_model),
                 )
+
+            # raise Exception
 
         # Write the main source file
         self.write(

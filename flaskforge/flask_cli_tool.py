@@ -46,7 +46,6 @@ def main():
         "initapp",
         "--use-docker",
         action="store_true",
-        default=True,
         help="Forcefully overwrite existing project files if they already exist. Use this option to create the project even if it conflicts with existing files or directories.",
     )
 
@@ -100,6 +99,14 @@ def main():
         action="store_true",
         help="Use a search method instead of the default get_all method for querying records.",
     )
+
+    flask_cli.add_argument(
+        "create",
+        "--use-docker",
+        action="store_true",
+        help="Use a search method instead of the default get_all method for querying records.",
+    )
+
     flask_cli.add_argument(
         "create",
         "--use-single",

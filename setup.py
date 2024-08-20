@@ -11,7 +11,7 @@ def parse_requirements(filename):
 
 setup(
     name="flaskforge",  # Package name
-    version="1.0.3",  # Initial release version
+    version="1.0.4",  # Initial release version
     author="Kimsea Sok",  # Author's name
     author_email="basicblogtalk@gmail.com",  # Author's email
     description="A CLI tool for generating Flask resources",  # Short package description

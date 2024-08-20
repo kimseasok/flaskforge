@@ -53,11 +53,17 @@ class MigrationWriter(AbstractWriter):
 
         self.env_py = self.format(astor.to_source(tree))
 
-        if path.isfile(join_path(self.package_root, "bases", "docker-compose.yml")):
+        if (
+            hasattr(self.args, "use_docker")
+            and self.args.use_docker
+            and path.isfile(join_path(self.package_root, "bases", "docker-compose.yml"))
+        ):
             docker_compose = self.read(
                 join_path(self.package_root, "bases", "docker-compose.yml")
             )
-            environments = load(docker_compose, Loader=Loader)["services"]["db"]["environment"]
+            environments = load(docker_compose, Loader=Loader)["services"]["db"][
+                "environment"
+            ]
 
             database_url = f"""postgresql://{environments["POSTGRES_USER"]}:{
                 environments["POSTGRES_PASSWORD"]}@db/{environments["POSTGRES_DB"]}"""

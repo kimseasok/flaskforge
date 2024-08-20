@@ -19,17 +19,12 @@ app.config.update(
         ),
         "APISPEC_SWAGGER_UI_URL": f"""/{environ.get("SWAGGER_UI_URL", "documents")}/""",
         "APISPEC_SWAGGER_URL": "/json/",
-    }
-)
-
-spec = FlaskApiSpec(app)
-
-app.config.update(
-    {
         "JWT_SECRET_KEY": environ.get("JWT_SECRET_KEY"),
         "JWT_TOKEN_LOCATION": [environ.get("JWT_TOKEN_LOCATION", "cookies")],
         "JWT_COOKIE_CSRF_PROTECT": environ.get("JWT_COOKIE_CSRF_PROTECT", False),
     }
 )
+
+spec = FlaskApiSpec(app)
 
 jwt = JWTManager(app)
