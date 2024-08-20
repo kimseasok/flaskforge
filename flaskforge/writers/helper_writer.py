@@ -52,10 +52,35 @@ class HelperWriter(AbstractWriter):
         gitignore = f"""
 *.pyc
 __pycache__
+pgdata
+env
+venv
+"""
+
+        dockerignore = f"""
+.gitignore
+env
+venv
+pg_data
 """
 
         self.write(join_path(self.helper_path, "helper.py"), self.get_source())
         self.write(join_path(self.project_path, ".gitignore"), gitignore)
+
+        if hasattr(self.args, "use_docker") and self.args.use_docker:
+            self.write(join_path(self.project_path, ".dockerignore"), dockerignore)
+
+            # write docker file
+            dockerfile = self.read(join_path(self.package_root, "bases", "Dockerfile"))
+            self.write(join_path(self.project_path, "Dockerfile"), dockerfile)
+
+            # write docker-compose
+            docker_compose = self.read(
+                join_path(self.package_root, "bases", "docker-compose.yml")
+            )
+            self.write(
+                join_path(self.project_path, "docker-compose.yml"), docker_compose
+            )
 
     def get_source(self) -> str:
         """

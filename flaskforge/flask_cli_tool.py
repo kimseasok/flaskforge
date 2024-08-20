@@ -21,12 +21,12 @@ def main():
     # Define the "initapp" command for initializing a new Flask project
     flask_cli.create_command(
         "initapp",
-        "Initialize a new Flask project with optional configurations. This command sets up a basic Flask application structure with the ability to customize certain features."
+        "Initialize a new Flask project with optional configurations. This command sets up a basic Flask application structure with the ability to customize certain features.",
     )
     flask_cli.add_argument(
         "initapp",
         "project",
-        help="The name of the new Flask project you wish to create. This will be used to name the project directory and other initial files."
+        help="The name of the new Flask project you wish to create. This will be used to name the project directory and other initial files.",
     )
     flask_cli.add_argument(
         "initapp",
@@ -44,6 +44,14 @@ def main():
     )
     flask_cli.add_argument(
         "initapp",
+        "--use-docker",
+        action="store_true",
+        default=True,
+        help="Forcefully overwrite existing project files if they already exist. Use this option to create the project even if it conflicts with existing files or directories.",
+    )
+
+    flask_cli.add_argument(
+        "initapp",
         "--force",
         action="store_true",
         help="Forcefully overwrite existing project files if they already exist. Use this option to create the project even if it conflicts with existing files or directories.",
@@ -52,12 +60,12 @@ def main():
     # Define the "create" command for generating API resources
     flask_cli.create_command(
         "create",
-        "Generate API resources, including models and their associated endpoints. This command helps you quickly scaffold out the essential components for your API."
+        "Generate API resources, including models and their associated endpoints. This command helps you quickly scaffold out the essential components for your API.",
     )
     flask_cli.add_argument(
         "create",
         "model",
-        help="The name of the model to be generated. This will create a model class and optionally generate associated endpoints based on your specifications."
+        help="The name of the model to be generated. This will create a model class and optionally generate associated endpoints based on your specifications.",
     )
     flask_cli.add_argument(
         "create",
@@ -120,7 +128,7 @@ def main():
     # Define the "create:authentication" command for setting up authentication resources
     flask_cli.create_command(
         "create:authentication",
-        "Generate authentication-related resources for a specified model. This command sets up the necessary components to support authentication features for the given model."
+        "Generate authentication-related resources for a specified model. This command sets up the necessary components to support authentication features for the given model.",
     )
     flask_cli.add_argument(
         "create:authentication",
@@ -143,7 +151,7 @@ def main():
     # Define the "create:resource" command for generating resource-related resources
     flask_cli.create_command(
         "create:resource",
-        "Generate resource-related components for a specified model. This includes setting up routes and endpoints for managing resources related to the model."
+        "Generate resource-related components for a specified model. This includes setting up routes and endpoints for managing resources related to the model.",
     )
     flask_cli.add_argument(
         "create:resource",

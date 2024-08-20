@@ -1,8 +1,9 @@
 import re
 import ast
 import astor
-from os import getenv, remove, path
+from os import getenv, path
 
+from yaml import load, dump
 from dotenv import load_dotenv
 from flaskforge.utils.commons import join_path
 from flaskforge.modifiers import ImportModifier, AssignmentModifier
@@ -45,7 +46,6 @@ class MigrationWriter(AbstractWriter):
         env_py = self.read_source(join_path(self.migration_path, "env.py"))
 
         tree = ast.parse(env_py)
-
         tree = ImportModifier("from models import *").visit(tree)
         tree = ImportModifier("from models.base_model import Base").visit(tree)
 
@@ -53,7 +53,17 @@ class MigrationWriter(AbstractWriter):
 
         self.env_py = self.format(astor.to_source(tree))
 
-        database_url = getenv("DATABASE_URL")
+        if path.isfile(join_path(self.package_root, "bases", "docker-compose.yml")):
+            docker_compose = self.read(
+                join_path(self.package_root, "bases", "docker-compose.yml")
+            )
+            environments = load(docker_compose)["services"]["db"]["environment"]
+
+            database_url = f"""postgresql://{environments["POSTGRES_USER"]}:{
+                environments["POSTGRES_PASSWORD"]}@db/{environments["POSTGRES_DB"]}"""
+        else:
+
+            database_url = getenv("DATABASE_URL")
 
         alembic_ini = self.read_source(join_path(self.project_root, "alembic.ini"))
 

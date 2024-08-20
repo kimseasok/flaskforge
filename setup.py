@@ -46,7 +46,7 @@ setup(
     },
     include_package_data=True,  # Include files specified in MANIFEST.in
     package_data={
-        "": ["*.txt", "*.rst"],  # Include text and reStructuredText files
+        "": ["*.txt", "*.rst", "*.yml", "Dockerfile"],  # Include text and reStructuredText files
     },
     zip_safe=False,  # Package is not zip-safe
 )

@@ -135,8 +135,15 @@ class AbstractWriter(ABC):
         """
         return format_str(source, mode=FileMode())
 
-    def read(self):
-        with open(join_path(self.writable_path, self.filename), "r") as reader:
+    def read(self, file_path: str = None):
+        with open(
+            (
+                join_path(self.writable_path, self.filename)
+                if file_path is None
+                else file_path
+            ),
+            "r",
+        ) as reader:
             source = reader.read()
 
         return source

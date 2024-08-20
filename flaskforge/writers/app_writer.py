@@ -47,10 +47,11 @@ class AppWriter(AbstractWriter):
             os.makedirs(self.app_path)
 
             # Copy base environment file
-            base_env_path = join_path(self.package_root, "bases", "base_env.py")
-            with open(base_env_path, "r") as reader:
-                env_content = reader.read()
-                self.write(join_path(self.project_path, "env.example"), env_content)
+            if hasattr(self.args, "use_docker") and not self.args.use_docker:
+                base_env_path = join_path(self.package_root, "bases", "base_env.py")
+                with open(base_env_path, "r") as reader:
+                    env_content = reader.read()
+                    self.write(join_path(self.project_path, "env.example"), env_content)
 
         # Write application source code
         init_file_path = join_path(self.app_path, "__init__.py")

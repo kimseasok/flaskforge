@@ -51,25 +51,23 @@ class BaseQuery(Query):
         return Paginate(page, per_page, total, items) if page != -1 else items
 
 
-# Read environment variables
-database_url = environ.get("DATABASE_URL", "sqlite:///:memory:")
-pool_size = environ.get("SQLALCHEMY_POOL_SIZE", None)
-max_overflow = environ.get("SQLALCHEMY_MAX_OVERFLOW", None)
-pool_timeout = environ.get("SQLALCHEMY_POOL_TIMEOUT", None)
+engine = create_engine(
+    "postgresql://{db_username}:{db_pwd}@db/{db_name}".format(
+        db_username=environ.get("POSTGRES_USER"),
+        db_pwd=environ.get("POSTGRES_PASSWORD"),
+        db_name=environ.get("POSTGRES_DB"),
+    )
+)
 
-# Initialize engine with parameters for PostgreSQL only
-kwargs = {}
-if database_url.startswith("postgresql://"):
-    if pool_size:
-        kwargs["pool_size"] = int(pool_size)
-    if max_overflow:
-        kwargs["max_overflow"] = int(max_overflow)
-    if pool_timeout:
-        kwargs["pool_timeout"] = int(pool_timeout)
-
-# database_url = "sqlite:///example.db"  # Example for SQLite
-engine = create_engine(database_url, echo=False)
-session = scoped_session(sessionmaker(bind=engine, query_cls=BaseQuery))
+session = scoped_session(
+    sessionmaker(
+        bind=engine,
+        query_cls=BaseQuery,
+        pool_size=environ.get("SQLALCHEMY_POOL_SIZE", 10),
+        max_overflow=environ.get("SQLALCHEMY_MAX_OVERFLOW", 10),
+        pool_timeout=environ.get("SQLALCHEMY_POOL_TIMEOUT", 30),
+    )
+)
 Base = declarative_base()
 
 
