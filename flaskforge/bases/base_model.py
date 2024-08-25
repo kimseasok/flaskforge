@@ -56,18 +56,13 @@ engine = create_engine(
         db_username=environ.get("POSTGRES_USER"),
         db_pwd=environ.get("POSTGRES_PASSWORD"),
         db_name=environ.get("POSTGRES_DB"),
-    )
-)
-
-session = scoped_session(
-    sessionmaker(
-        bind=engine,
-        query_cls=BaseQuery,
         pool_size=environ.get("SQLALCHEMY_POOL_SIZE", 10),
         max_overflow=environ.get("SQLALCHEMY_MAX_OVERFLOW", 10),
         pool_timeout=environ.get("SQLALCHEMY_POOL_TIMEOUT", 30),
     )
 )
+
+session = scoped_session(sessionmaker(bind=engine, query_cls=BaseQuery))
 Base = declarative_base()
 
 
