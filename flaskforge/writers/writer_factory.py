@@ -1,5 +1,3 @@
-import inspect
-
 from flaskforge.writers import (
     ModelWriter,
     RouteWriter,

@@ -96,6 +96,13 @@ class AbstractWriter(ABC):
             # Write base file if it exists
             base_path = join_path(self.package_root, "bases", f"base_{self.type}.py")
 
+            # overwrite use_docker to true once dockerfile exist
+            setattr(
+                self.args,
+                "use_docker",
+                os.path.isfile(join_path(self.project_root, "Dockerfile")),
+            )
+
             if os.path.isfile(base_path):
                 with open(base_path, "r") as reader:
                     base_model = reader.read()
