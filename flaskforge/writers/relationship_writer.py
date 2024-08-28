@@ -54,13 +54,18 @@ class AbstractStrategy(ABC):
             if self.relationship >= 4 and self.relationship <= 7
             else self.args.model
         )
+
         self.child = (
             pascalcase(f"{self.args.model}_model")
             if self.relationship >= 4 and self.relationship <= 7
-            else self.kwargs["child_model"]
+            else pascalcase(self.kwargs["child_model"])
         )
 
+        self.is_single_parent = self.relationship <= 7
         self.only_relationship = self.relationship in (1, 3, 5, 7)
+        self.is_use_child_backref = (
+            hasattr(self.args, "use_child_backref") and self.args.use_child_backref
+        )
 
         self.append_model()
         self.set_writable()
@@ -73,7 +78,10 @@ class AbstractStrategy(ABC):
     def modify_parent(self): ...
 
     def get_child_source(
-        self, unique: bool = False, primary: bool = False, required: bool = False
+        self,
+        unique: bool = False,
+        primary: bool = False,
+        required: bool = False,
     ) -> str:
         """
         Generate source code for the child model.
@@ -88,9 +96,52 @@ class AbstractStrategy(ABC):
             - Handle cases where `self.child_path` might be missing or inaccessible.
         """
         tree = self.modify_child_import(self.read_tree(self.child_path))
+
         tree = FieldModifier(
             self.get_foriegn_key_str(unique=unique, required=True)
         ).visit(tree)
+
+        if not self.is_use_child_backref:
+            return astor.to_source(tree)
+
+        p = inflect.engine()
+        field_name = (
+            self.args.parent if self.is_single_parent else p.plural(self.args.parent)
+        )
+        tree = self.modify_parent_import(tree)
+
+        relationship_source = self.get_relationship_str(
+            field_name,
+            model=pascalcase(f"{self.args.parent}_model"),
+            backref=self.args.child if unique else p.plural(self.args.child),
+        )
+
+        tree = FieldModifier(relationship_source).visit(tree)
+
+        if not self.only_relationship:
+            return astor.to_source(tree)
+
+            # Define the new method with a variable
+        new_method_code = f"""
+@validates('{field_name}')
+def validate_{field_name}(self, key, {field_name}):
+    error_message = "A {self.model} must have at least one {
+        snakecase(self.child.replace("Model", ""))}."
+    if not {field_name}:
+        raise ValueError(error_message)
+    return {field_name}
+"""
+
+        print(self.child)
+
+        tree = ImportModifier(
+            ["validates"], extend=True, module="sqlalchemy.orm"
+        ).visit(tree)
+
+        tree = MethodModifier(self.child, new_method_code).visit(tree)
+
+        print(astor.to_source(tree))
+
         return astor.to_source(tree)
 
     def get_parent_source(self, field_name: str, unique: bool = False) -> str:
@@ -107,8 +158,12 @@ class AbstractStrategy(ABC):
         TODO:
             - Handle cases where `self.parent_path` might be missing or inaccessible.
         """
-        tree = self.modify_parent_import(self.read_tree(self.parent_path))
 
+        tree = self.read_tree(self.parent_path)
+        if self.is_use_child_backref:
+            return astor.to_source(tree)
+
+        tree = self.modify_parent_import(tree)
         tree = FieldModifier(self.get_relationship_str(field_name, unique)).visit(tree)
 
         if self.only_relationship:
@@ -117,8 +172,9 @@ class AbstractStrategy(ABC):
             new_method_code = f"""
 @validates('{field_name}')
 def validate_{field_name}(self, key, {field_name}):
-    error_message = "A {self.model} must have at least one {
-        snakecase(self.child.replace("Model", ""))}."
+    error_message = "A {
+        snakecase(self.child.replace("Model", ""))
+        } must have at least one {self.model}."
     if not {field_name}:
         raise ValueError(error_message)
     return {field_name}
@@ -126,6 +182,7 @@ def validate_{field_name}(self, key, {field_name}):
             tree = ImportModifier(
                 ["validates"], extend=True, module="sqlalchemy.orm"
             ).visit(tree)
+
             tree = MethodModifier(
                 pascalcase(f"{self.model}_model"), new_method_code
             ).visit(tree)
@@ -157,7 +214,13 @@ def validate_{field_name}(self, key, {field_name}):
         """
         return join_path(self.model_path, f"{snakecase(model)}.py")
 
-    def get_relationship_str(self, field: str, unique: bool = False) -> str:
+    def get_relationship_str(
+        self,
+        field: str,
+        unique: bool = False,
+        model: str = None,
+        backref: str = None,
+    ) -> str:
         """
         Generate the relationship string for the parent model.
 
@@ -171,9 +234,13 @@ def validate_{field_name}(self, key, {field_name}):
         TODO:
             - Validate the relationship string format.
         """
+        uselist = not self.is_single_parent if self.is_use_child_backref else not unique
         return f"""{field} = relationship("{
-            pascalcase(self.child)}", backref="{
-                self.model}", uselist={not unique},cascade="all, delete-orphan")"""
+            pascalcase(self.child if model is None else model)}", backref="{
+                self.model if backref is None else backref
+                }", uselist={uselist}{
+                    ')' if self.is_use_child_backref else ',cascade="all, delete-orphan")'
+                    }"""
 
     def get_foriegn_key_str(
         self,
@@ -483,6 +550,13 @@ class RelationshipWriter(AbstractWriter):
         """
         self.args = args
         self.kwargs = kwargs
+
+        self.args.model = (
+            self.args.parent
+            if not hasattr(self.args, "model") and getattr(self.args, "parent")
+            else self.args.model
+        )
+
         self.schema_writer = SchemaWriter(args, **kwargs)
 
         self._strategy = RelationShipFactory(kwargs["strategy"])(args, kwargs)
@@ -516,4 +590,5 @@ class RelationshipWriter(AbstractWriter):
             - Handle cases where the generated source code might not be valid or complete.
         """
         self.child_source = self.format(self._strategy.modify_child())
+
         self.parent_source = self.format(self._strategy.modify_parent())

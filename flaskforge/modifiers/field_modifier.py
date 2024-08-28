@@ -61,8 +61,9 @@ class FieldModifier(ast.NodeTransformer):
         Returns:
             ast.ClassDef: The modified class definition node with the new field.
         """
-        # Extract the new field assignment
+        # Extract existing fields and methods
         existing_fields = [n for n in node.body if isinstance(n, ast.Assign)]
+        methods = [n for n in node.body if isinstance(n, ast.FunctionDef)]
 
         # Check if any existing field has the same name
         field_exists = False
@@ -76,8 +77,13 @@ class FieldModifier(ast.NodeTransformer):
                 field_exists = True
                 break
 
-        # Append the new field if it does not exist
+        # Insert the new field before the first method if methods exist
         if not field_exists:
-            node.body.append(self.new_field)
+            if methods:
+                first_method_index = node.body.index(methods[0])
+                node.body.insert(first_method_index, self.new_field)
+            else:
+                # No methods present, append the new field
+                node.body.append(self.new_field)
 
         return node

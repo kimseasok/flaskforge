@@ -2,6 +2,7 @@ from .initapp_provider import InitappProvider
 from .create_provider import CreateProvider
 from .create_resource_provider import CreateResourceProvider
 from .create_authentication_provider import CreateAuthentication
+from .create_relationship_provider import CreateRelationshipProvider
 
 
 class ProviderFactory:
@@ -20,6 +21,7 @@ class ProviderFactory:
         "initapp": InitappProvider,
         "create:authentication": CreateAuthentication,
         "create:resource": CreateResourceProvider,
+        "create:relationship": CreateRelationshipProvider,
     }
 
     def __new__(cls, name: str):
