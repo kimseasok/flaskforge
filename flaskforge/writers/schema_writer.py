@@ -81,6 +81,7 @@ class SchemaWriter(AbstractWriter):
             if self.relationship >= 4 and self.relationship <= 7
             else self.args.model
         )
+
         self.child = (
             pascalcase(f"{self.args.model}_model")
             if self.relationship >= 4 and self.relationship <= 7
@@ -92,7 +93,7 @@ class SchemaWriter(AbstractWriter):
         self.set_writable()
         self.set_writable_path("schemas")
 
-        self.child = snakecase(self.child.replace("Model", ""))
+        self.child = snakecase(self.child).replace("_model", "")
         schema_source = self.get_source()
         schema_class = pascalcase(f"{self.child}_schema")
         many = int(self.relationship) not in [0, 1, 4, 5]
