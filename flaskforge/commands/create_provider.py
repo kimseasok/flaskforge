@@ -290,44 +290,62 @@ Please run {self.io.color(self.io.CYAN, "flaskforge initapp")} first"""
         except Exception as err:
             self.io.error(str(err))
 
-        confirm_init = False
-        now = datetime.now()
-        # Format the timestamp as YYYY_MM_DD_HH_MM_SS
-        timestamp = now.strftime("%Y_%m_%d_%H_%M_%S")
-        msg = snakecase(f"{timestamp} create {args.model} table")
-        use_docker = os.path.isfile(join_path(self.project_path, "Dockerfile"))
+        try:
 
-        if (
-            not os.path.isfile(join_path(self.project_path, "alembic.ini"))
-            and self.io.confirm("Would like to init migration") == "yes"
-        ):
-            exec_command(
-                f"""{"docker exec -it api " if use_docker else ""}alembic init migration"""
-            )
+            confirm_init = False
+            now = datetime.now()
+            # Format the timestamp as YYYY_MM_DD_HH_MM_SS
+            timestamp = now.strftime("%Y_%m_%d_%H_%M_%S")
+            msg = snakecase(f"{timestamp} create {args.model} table")
+            use_docker = os.path.isfile(join_path(self.project_path, "Dockerfile"))
 
-            writer = WriterFactory("migration", args)
-            writer.args.use_docker = use_docker
-            writer.write_source()
+            if (
+                not os.path.isfile(join_path(self.project_path, "alembic.ini"))
+                and self.io.confirm("Would like to init migration") == "yes"
+            ):
+                if (
+                    use_docker
+                    and exec_command("docker ps -q", echo=False) == ""
+                    and self.io.confirm(
+                        "No docker container is running! Please up docker services and confirm (yes)"
+                    )
+                    != "yes"
+                ):
+                    raise DoneExit
 
-            # Run migration once
-            exec_command(
-                f"""{"docker exec -it api " if use_docker else ""
-                }alembic revision --autogenerate --message '{msg}'"""
-            )
-            exec_command(
-                f"""{"docker exec -it api " if use_docker else ""}alembic upgrade head"""
-            )
-            confirm_init = True
+                exec_command(
+                    f"""{"docker exec -it api " if use_docker else ""}alembic init migration"""
+                )
 
-        if (
-            not confirm_init
-            and self.io.confirm("Would you like to execute alembic migrate?") == "yes"
-        ):
+                writer = WriterFactory("migration", args)
+                writer.args.use_docker = use_docker
+                writer.write_source()
 
-            exec_command(
-                f"""{"docker exec -it api " if use_docker else ""
-                }alembic revision --autogenerate --message '{msg}'"""
-            )
-            exec_command(
-                f"""{"docker exec -it api " if use_docker else ""}alembic upgrade head"""
-            )
+                # Run migration once
+                exec_command(
+                    f"""{"docker exec -it api " if use_docker else ""
+                    }alembic revision --autogenerate --message '{msg}'"""
+                )
+                exec_command(
+                    f"""{"docker exec -it api " if use_docker else ""}alembic upgrade head"""
+                )
+                confirm_init = True
+
+            if (
+                not confirm_init
+                and self.io.confirm("Would you like to execute alembic migrate?")
+                == "yes"
+            ):
+
+                exec_command(
+                    f"""{"docker exec -it api " if use_docker else ""
+                    }alembic revision --autogenerate --message '{msg}'"""
+                )
+                exec_command(
+                    f"""{"docker exec -it api " if use_docker else ""}alembic upgrade head"""
+                )
+        except DoneExit:
+            ...
+
+        except Exception as err:
+            self.io.error(str(err))
