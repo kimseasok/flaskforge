@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import argparse
 from flaskforge.flask_cli import FlaskCli
 
 
@@ -481,6 +482,55 @@ def main():
             $ flask create:resource User --type int
             Specifies the query string parameter type as integer.
         """,
+    )
+    flask_cli.create_command(
+        "migrate",
+        """
+        Manage database migrations using Alembic within a Docker container. This command
+        allows you to perform operations such as upgrading, downgrading, and creating
+        new revisions. You can pass arbitrary Alembic arguments to the command.
+
+        Example:
+            $ flask migrate revision --autogenerate --message "create table user" --container my_container
+            Creates a new Alembic revision inside the Docker container named 'my_container'.
+        """,
+    )
+    flask_cli.add_argument(
+        "migrate",
+        "operation",
+        help="""
+        The Alembic operation to perform. This could be 'upgrade', 'downgrade', 'revision', etc.
+
+        Example:
+            $ flask migrate revision --autogenerate --message "create table user" --container my_container
+            Executes the 'revision' operation for creating a new database revision.
+        """,
+    )
+
+    flask_cli.add_argument(
+        "migrate",
+        "--container",
+        default="api",
+        help="""
+        The name of the Docker container where Alembic should be executed.
+
+        Example:
+            $ flask migrate revision --autogenerate --message "create table user" --container my_container
+            Specifies 'my_container' as the Docker container for running Alembic commands.
+        """,
+    )
+    flask_cli.add_argument(
+        "migrate",
+        "--alembic-args",
+        help="""
+        Arbitrary arguments to pass to the Alembic command. Use this to specify options
+        like '--autogenerate' or '--message "create table user"'.
+
+        Example:
+            $ flask migrate revision --autogenerate --message "create table user" --container my_container
+            Passes '--autogenerate --message "create table user"' as arguments to the Alembic command.
+        """,
+        nargs=argparse.REMAINDER,
     )
 
     # Parse arguments and execute the appropriate command

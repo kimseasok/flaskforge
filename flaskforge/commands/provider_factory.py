@@ -1,5 +1,6 @@
 from .initapp_provider import InitappProvider
 from .create_provider import CreateProvider
+from .migrate_provider import MigrateProvider
 from .create_resource_provider import CreateResourceProvider
 from .create_authentication_provider import CreateAuthentication
 from .create_relationship_provider import CreateRelationshipProvider
@@ -19,8 +20,9 @@ class ProviderFactory:
     provider = {
         "create": CreateProvider,
         "initapp": InitappProvider,
-        "create:authentication": CreateAuthentication,
+        "migrate": MigrateProvider,
         "create:resource": CreateResourceProvider,
+        "create:authentication": CreateAuthentication,
         "create:relationship": CreateRelationshipProvider,
     }
 
