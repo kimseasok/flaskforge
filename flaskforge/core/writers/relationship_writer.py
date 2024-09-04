@@ -132,15 +132,11 @@ def validate_{field_name}(self, key, {field_name}):
     return {field_name}
 """
 
-        print(self.child)
-
         tree = ImportModifier(
             ["validates"], extend=True, module="sqlalchemy.orm"
         ).visit(tree)
 
         tree = MethodModifier(self.child, new_method_code).visit(tree)
-
-        print(astor.to_source(tree))
 
         return astor.to_source(tree)
 
